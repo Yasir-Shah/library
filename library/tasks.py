@@ -2,6 +2,9 @@ from celery import shared_task
 from .models import Loan
 from django.core.mail import send_mail
 from django.conf import settings
+from celery.utils.log import get_task_logger
+
+logger = get_task_logger(__name__)
 
 @shared_task
 def send_loan_notification(loan_id):
@@ -18,3 +21,8 @@ def send_loan_notification(loan_id):
         )
     except Loan.DoesNotExist:
         pass
+
+@shared_task
+def check_overdue_loans():
+    logger.info("Checking overdue loans...")
+    print("Checking overdue loans!")

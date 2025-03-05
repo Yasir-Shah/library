@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 load_dotenv()
 
@@ -67,8 +68,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('POSTGRES_DB', 'library_db'),
-        'USER': os.getenv('POSTGRES_USER', 'library_user'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'library_password'),
+        'USER': os.getenv('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'root'),
         'HOST': os.getenv('DB_HOST', 'db'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }
@@ -84,6 +85,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     # Add more validators as needed
 ]
+
+CELERY_BEAT_SCHEDULE = {
+    "check_overdue_loans": {
+        "task": "library_system.tasks.check_overdue_loans",
+        "schedule": crontab(minute="*/1"),
+    },
+}
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
@@ -106,11 +114,14 @@ REST_FRAMEWORK = {
 }
 
 # Celery Configuration
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://redis:6379/0')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://redis:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+PAGE_SIZE = 10
+MAX_PAGE_SIZE = 500
 
 # Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development
